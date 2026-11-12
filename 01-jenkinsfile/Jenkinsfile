@@ -19,5 +19,12 @@ pipeline{
                 '''    
             }
         }
+
+        stage('python stage'){
+            steps{
+                sh '''
+                
+            }
+        }
     }
 }
