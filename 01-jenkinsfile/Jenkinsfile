@@ -1,0 +1,23 @@
+pipeline{
+    agent any
+    stages{
+        stage('first stage'){
+            steps{
+                sh '''
+                    hostname=$(hostname)
+                    echo $hostname
+                '''
+            }
+        
+        }
+        
+        stage('second stage'){
+            steps{
+                sh '''
+                    whoami
+                    free -h
+                '''    
+            }
+        }
+    }
+}
