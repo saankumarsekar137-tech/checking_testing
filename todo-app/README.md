@@ -1,17 +1,32 @@
 # Daylight Todo
 
-A standalone, responsive todo app built with vanilla HTML, CSS, and JavaScript. No build step or package installation is required.
+Daylight is a responsive todo app split into a static frontend and a Node.js JSON API backend.
 
-## Run it
+## Run locally
 
-Open `index.html` in a modern browser. Tasks are saved in that browser's local storage and stay on the current device.
+Start the backend in one terminal:
 
-The Jenkins pipeline also includes a `todo app stage` that checks the app files and validates `app.js` with Node.js. The Jenkins agent needs Node.js available on its `PATH` for that stage.
+```sh
+cd todo-app/backend
+node server.js
+```
 
-## Features
+In another terminal, serve the frontend:
 
-- Add tasks with optional due dates and low, medium, or high priority
-- Mark tasks complete, delete tasks, or clear completed tasks
-- Filter by all tasks, today, upcoming, or completed
-- Search task titles and filter for high-priority items
-- Track completion progress, with a responsive glossy interface and subtle transitions
+```sh
+cd todo-app/frontend
+python3 -m http.server 5500
+```
+
+Open `http://localhost:5500`. The frontend connects to `http://localhost:3001/api` by default. The backend stores tasks in `backend/data/tasks.json`; set `PORT`, `HOST`, or `TODO_DATA_FILE` to change its defaults.
+
+## Build and test
+
+The frontend build copies the browser assets into `frontend/dist`. The backend build copies its runnable server into `backend/dist`, and the backend test uses only Node.js built-in modules.
+
+```sh
+cd todo-app/frontend && node build.js
+cd ../backend && node build.js && node --test
+```
+
+The Jenkins pipeline runs the frontend and backend builds in separate stages and runs the backend API tests.

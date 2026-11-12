@@ -29,15 +29,29 @@ pipeline{
             }
         }
 
-        stage('todo app stage'){
+        stage('frontend build'){
             steps{
                 sh '''
-                    cd todo-app/
-                    test -s index.html
-                    test -s styles.css
-                    test -s app.js
+                    cd todo-app/frontend/
                     node --check app.js
-                    echo "Todo app files are present and JavaScript syntax is valid."
+                    node build.js
+                    test -s dist/index.html
+                    test -s dist/styles.css
+                    test -s dist/app.js
+                    echo "Frontend build completed."
+                '''
+            }
+        }
+
+        stage('backend build and test'){
+            steps{
+                sh '''
+                    cd todo-app/backend/
+                    node --check server.js
+                    node build.js
+                    node --check dist/server.js
+                    node --test
+                    echo "Backend build and tests completed."
                 '''
             }
         }
