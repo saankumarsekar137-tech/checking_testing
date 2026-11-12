@@ -23,7 +23,8 @@ pipeline{
         stage('python stage'){
             steps{
                 sh '''
-                
+                    python3 test.py
+                '''    
             }
         }
     }
