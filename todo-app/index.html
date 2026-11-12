@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f4fb" />
+    <meta
+      name="description"
+      content="A calm, glossy space to organize your day and make progress."
+    />
+    <title>Daylight — Your tasks, in focus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="Daylight home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M16 3.5v5M16 23.5v5M28.5 16h-5M8.5 16h-5M24.84 7.16l-3.54 3.54M10.7 21.3l-3.54 3.54m17.68 0L21.3 21.3M10.7 10.7 7.16 7.16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="16" cy="16" r="6.2" fill="currentColor"/>
+            </svg>
+          </span>
+          <span>daylight<span class="brand-period">.</span></span>
+        </a>
+
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="nav-list" aria-label="Task filters">
+          <button class="nav-item active" type="button" data-filter="all">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>
+            </span>
+            <span>All tasks</span>
+            <span class="nav-count" id="all-count">0</span>
+          </button>
+          <button class="nav-item" type="button" data-filter="today">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
+            </span>
+            <span>Today</span>
+            <span class="nav-count" id="today-count">0</span>
+          </button>
+          <button class="nav-item" type="button" data-filter="upcoming">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>
+            </span>
+            <span>Upcoming</span>
+          </button>
+          <button class="nav-item" type="button" data-filter="completed">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8 12 2.5 2.5L16.5 9"/></svg>
+            </span>
+            <span>Completed</span>
+            <span class="nav-count" id="completed-count">0</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <section class="focus-card" aria-label="Daily focus">
+            <div class="focus-glow" aria-hidden="true"></div>
+            <span class="focus-sparkle" aria-hidden="true">✦</span>
+            <p class="focus-eyebrow">A LITTLE REMINDER</p>
+            <p class="focus-quote">Small steps still move you forward.</p>
+            <span class="focus-author">YOUR DAILY FOCUS</span>
+          </section>
+          <div class="sidebar-footer">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Your tasks stay on this device</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Workspace</span><span class="breadcrumb-slash">/</span><strong id="active-view-label">All tasks</strong></div>
+          <div class="topbar-right">
+            <span class="date-chip" id="today-label"></span>
+            <div class="avatar" aria-label="Your workspace">Y</div>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <section class="welcome-row">
+            <div>
+              <p class="eyebrow" id="greeting">A FRESH START</p>
+              <h1 id="page-title">Make room for <span>what matters.</span></h1>
+              <p class="page-subtitle">A little progress each day adds up to something wonderful.</p>
+            </div>
+            <div class="today-art" aria-hidden="true">
+              <div class="art-orbit orbit-one"></div>
+              <div class="art-orbit orbit-two"></div>
+              <div class="art-sun"></div>
+              <span class="art-star star-one">✦</span>
+              <span class="art-star star-two">✧</span>
+            </div>
+          </section>
+
+          <section class="stats-grid" aria-label="Task progress">
+            <article class="stat-card stat-total">
+              <div class="stat-top"><span class="stat-icon purple-icon">▤</span><span class="stat-caption">YOUR TASKS</span></div>
+              <div class="stat-value" id="stat-total">0</div>
+              <div class="stat-description">things on your list</div>
+              <div class="stat-decoration decoration-purple" aria-hidden="true"></div>
+            </article>
+            <article class="stat-card stat-done">
+              <div class="stat-top"><span class="stat-icon green-icon">✓</span><span class="stat-caption">COMPLETED</span></div>
+              <div class="stat-value" id="stat-completed">0</div>
+              <div class="stat-description">little wins today</div>
+              <div class="stat-decoration decoration-green" aria-hidden="true"></div>
+            </article>
+            <article class="stat-card stat-progress">
+              <div class="stat-top"><span class="stat-icon orange-icon">↗</span><span class="stat-caption">YOUR PROGRESS</span></div>
+              <div class="progress-stat-row"><div class="stat-value" id="stat-progress">0<span class="percent">%</span></div><span class="progress-note">keep it up!</span></div>
+              <div class="progress-track"><span id="progress-bar"></span></div>
+              <div class="stat-description" id="progress-description">Every task is a step forward</div>
+            </article>
+          </section>
+
+          <section class="tasks-panel" aria-labelledby="tasks-heading">
+            <div class="tasks-heading-row">
+              <div>
+                <div class="section-title-row">
+                  <h2 id="tasks-heading">Your tasks</h2>
+                  <span class="task-total-pill" id="visible-count">0</span>
+                </div>
+                <p class="section-subtitle" id="list-subtitle">One thing at a time. You’ve got this.</p>
+              </div>
+              <div class="task-controls">
+                <label class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+                  <input id="search-input" type="search" placeholder="Search tasks" aria-label="Search tasks" />
+                </label>
+                <button class="filter-button" id="priority-filter" type="button" aria-label="Filter by priority" title="Show high priority tasks">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6h14M8 12h8m-5 6h2"/></svg>
+                  <span>Priority</span>
+                </button>
+              </div>
+            </div>
+
+            <form class="add-task-form" id="task-form">
+              <span class="add-plus" aria-hidden="true">+</span>
+              <input id="task-input" name="title" type="text" maxlength="120" placeholder="What would you like to get done?" aria-label="Task title" autocomplete="off" required />
+              <div class="add-form-options">
+                <label class="date-input-wrap" title="Optional due date">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
+                  <input id="due-date-input" type="date" aria-label="Task due date" />
+                </label>
+                <label class="priority-select-wrap">
+                  <span class="priority-dot priority-medium" aria-hidden="true"></span>
+                  <select id="priority-input" aria-label="Task priority">
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                  </select>
+                </label>
+              </div>
+              <button class="add-button" type="submit"><span>Add task</span><span aria-hidden="true">↗</span></button>
+            </form>
+
+            <div class="list-meta">
+              <span id="list-label">TODAY’S FOCUS</span>
+              <button class="clear-button" id="clear-completed" type="button" hidden>Clear completed</button>
+            </div>
+
+            <div class="task-list" id="task-list" aria-live="polite"></div>
+            <div class="empty-state" id="empty-state" hidden>
+              <div class="empty-illustration" aria-hidden="true"><span>✦</span><div class="empty-check">✓</div></div>
+              <h3 id="empty-title">A clear mind starts here</h3>
+              <p id="empty-description">Add your first task above and make today yours.</p>
+            </div>
+
+            <footer class="panel-footer">
+              <span><span class="footer-sparkle">✦</span> Take it one task at a time</span>
+              <span id="footer-count">0 tasks left</span>
+            </footer>
+          </section>
+          <p class="page-footnote">Made for your focus <span>♥</span> Your data is saved privately in this browser.</p>
+        </div>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
