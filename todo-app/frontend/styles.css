@@ -114,6 +114,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .focus-author { color: rgba(255,255,255,.64); font-size: 8px; font-weight: 700; letter-spacing: 1px; }
 .sidebar-footer { display: flex; align-items: center; gap: 8px; padding: 19px 3px 0; color: #a09dac; font-size: 9px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #75cba3; box-shadow: 0 0 0 3px rgba(117,203,163,.14); }
+.sidebar-footer.is-offline .status-dot { background: #e88983; box-shadow: 0 0 0 3px rgba(232,137,131,.14); }
 
 .main-content { min-width: 0; }
 .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 70px; padding: 0 43px; border-bottom: 1px solid rgba(231, 228, 241, .65); }

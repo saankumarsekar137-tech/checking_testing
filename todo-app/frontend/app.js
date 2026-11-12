@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "daylight-todo-tasks-v1";
+  const API_BASE_URL = window.DAYLIGHT_API_URL || "http://localhost:3001/api";
   const filters = ["all", "today", "upcoming", "completed"];
   const elements = {
     taskForm: document.querySelector("#task-form"),
@@ -33,9 +33,12 @@
     todayCount: document.querySelector("#today-count"),
     completedCount: document.querySelector("#completed-count"),
     toast: document.querySelector("#toast"),
+    apiStatus: document.querySelector(".sidebar-footer"),
+    apiStatusLabel: document.querySelector("#api-status-label"),
   };
 
-  let tasks = loadTasks();
+  let tasks = [];
+  let apiAvailable = false;
   let activeFilter = "all";
   let priorityOnly = false;
   let toastTimer;
@@ -45,19 +48,6 @@
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
-  }
-
-  function loadTasks() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return [];
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed)) throw new Error("Saved tasks are not a list.");
-      return parsed.filter(isValidTask);
-    } catch (error) {
-      console.error("Could not load saved tasks.", error);
-      return [];
-    }
   }
 
   function isValidTask(task) {
@@ -72,15 +62,45 @@
     );
   }
 
-  function saveTasks() {
+  async function apiRequest(path, options = {}) {
+    let response;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-      return true;
+      response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      });
     } catch (error) {
-      console.error("Could not save tasks in this browser.", error);
-      showToast("Could not save changes. Check your browser storage.");
-      return false;
+      throw new Error(`Could not reach the todo backend at ${API_BASE_URL}. Start the backend and try again.`);
     }
+
+    let result;
+    try {
+      result = await response.json();
+    } catch (error) {
+      throw new Error("The todo backend returned an invalid response.");
+    }
+    if (!response.ok) throw new Error(result.error || `Backend request failed (${response.status}).`);
+    return result;
+  }
+
+  async function loadTasks() {
+    try {
+      const result = await apiRequest("/tasks");
+      if (!Array.isArray(result.tasks) || result.tasks.some((task) => !isValidTask(task))) {
+        throw new Error("The todo backend returned invalid task data.");
+      }
+      tasks = result.tasks;
+      apiAvailable = true;
+    } catch (error) {
+      tasks = [];
+      apiAvailable = false;
+      console.error("Could not load tasks from the todo backend.", error);
+      showToast(error.message);
+    }
+    render();
   }
 
   function formatDate(dateString, options = { month: "short", day: "numeric" }) {
@@ -211,6 +231,8 @@
     elements.completedCount.textContent = String(completed);
     elements.footerCount.textContent = `${remaining} ${remaining === 1 ? "task" : "tasks"} left`;
     elements.clearCompleted.hidden = completed === 0;
+    elements.apiStatus.classList.toggle("is-offline", !apiAvailable);
+    elements.apiStatusLabel.textContent = apiAvailable ? "Connected to your task server" : "Task server unavailable";
 
     const labels = {
       all: ["All tasks", "Your tasks", "One thing at a time. You’ve got this.", "TODAY’S FOCUS"],
@@ -238,13 +260,17 @@
     });
 
     const noTasks = tasks.length === 0;
-    elements.emptyTitle.textContent = noTasks
-      ? "A clear mind starts here"
+    elements.emptyTitle.textContent = !apiAvailable
+      ? "Your task server is offline"
+      : noTasks
+        ? "A clear mind starts here"
       : activeFilter === "completed"
         ? "Your next little win is waiting"
         : "Nothing on this list right now";
-    elements.emptyDescription.textContent = noTasks
-      ? "Add your first task above and make today yours."
+    elements.emptyDescription.textContent = !apiAvailable
+      ? "Start the backend on port 3001 and reload to see your tasks."
+      : noTasks
+        ? "Add your first task above and make today yours."
       : elements.searchInput.value.trim()
         ? "Try a different search or clear the search field."
         : activeFilter === "today"
@@ -263,7 +289,7 @@
     toastTimer = window.setTimeout(() => elements.toast.classList.remove("show"), 2600);
   }
 
-  function addTask(event) {
+  async function addTask(event) {
     event.preventDefault();
     const title = elements.taskInput.value.trim();
     if (!title) {
@@ -271,42 +297,71 @@
       return;
     }
 
-    const task = {
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      title,
-      completed: false,
-      priority: elements.priorityInput.value,
-      dueDate: elements.dueDateInput.value || null,
-      createdAt: new Date().toISOString(),
-    };
-    tasks = [task, ...tasks];
-    if (saveTasks()) {
+    try {
+      const result = await apiRequest("/tasks", {
+        method: "POST",
+        body: JSON.stringify({
+          title,
+          priority: elements.priorityInput.value,
+          dueDate: elements.dueDateInput.value || null,
+        }),
+      });
+      if (!isValidTask(result.task)) throw new Error("The todo backend returned invalid task data.");
+      tasks = [result.task, ...tasks];
+      apiAvailable = true;
+      render();
       elements.taskForm.reset();
       elements.taskInput.focus();
       showToast("Task added. You’ve got this!");
+    } catch (error) {
+      console.error("Could not add task.", error);
+      showToast(error.message);
     }
-    render();
   }
 
-  function toggleTask(id) {
-    tasks = tasks.map((task) => task.id === id ? { ...task, completed: !task.completed } : task);
-    const changedTask = tasks.find((task) => task.id === id);
-    if (saveTasks() && changedTask?.completed) showToast("A little win, beautifully done!");
-    render();
+  async function toggleTask(id) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+    try {
+      const result = await apiRequest(`/tasks/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      if (!isValidTask(result.task)) throw new Error("The todo backend returned invalid task data.");
+      tasks = tasks.map((item) => item.id === id ? result.task : item);
+      apiAvailable = true;
+      render();
+      if (result.task.completed) showToast("A little win, beautifully done!");
+    } catch (error) {
+      console.error("Could not update task.", error);
+      showToast(error.message);
+    }
   }
 
-  function deleteTask(id) {
-    tasks = tasks.filter((task) => task.id !== id);
-    saveTasks();
-    render();
-    showToast("Task removed.");
+  async function deleteTask(id) {
+    try {
+      await apiRequest(`/tasks/${encodeURIComponent(id)}`, { method: "DELETE" });
+      tasks = tasks.filter((task) => task.id !== id);
+      apiAvailable = true;
+      render();
+      showToast("Task removed.");
+    } catch (error) {
+      console.error("Could not delete task.", error);
+      showToast(error.message);
+    }
   }
 
-  function clearCompleted() {
-    tasks = tasks.filter((task) => !task.completed);
-    saveTasks();
-    render();
-    showToast("Completed tasks cleared.");
+  async function clearCompleted() {
+    try {
+      await apiRequest("/tasks?completed=true", { method: "DELETE" });
+      tasks = tasks.filter((task) => !task.completed);
+      apiAvailable = true;
+      render();
+      showToast("Completed tasks cleared.");
+    } catch (error) {
+      console.error("Could not clear completed tasks.", error);
+      showToast(error.message);
+    }
   }
 
   elements.taskForm.addEventListener("submit", addTask);
@@ -329,4 +384,5 @@
 
   setDateAndGreeting();
   render();
+  void loadTasks();
 })();
